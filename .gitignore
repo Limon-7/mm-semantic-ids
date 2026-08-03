@@ -1,0 +1,26 @@
+# data and artefacts never go in the repo
+/data/
+/features/
+/checkpoints/
+outputs/
+runs/
+wandb/
+*.npy
+*.pt
+*.parquet
+*.csv.gz
+*.jsonl
+
+# environment
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.ipynb_checkpoints/
+
+# logs
+*.log
+results/**/events.out.tfevents.*
