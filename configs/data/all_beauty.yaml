@@ -1,0 +1,6 @@
+# Tiny 5-core set, used only as the pipeline smoke test.
+name: all_beauty
+source: amazon2023
+category: All_Beauty
+max_users: null
+subsample_seed: 0

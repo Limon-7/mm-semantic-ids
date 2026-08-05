@@ -1,0 +1,6 @@
+# Specification-driven category.
+name: video_games
+source: amazon2023
+category: Video_Games
+max_users: null
+subsample_seed: 0
