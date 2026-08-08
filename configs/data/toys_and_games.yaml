@@ -1,0 +1,7 @@
+# Visually driven category. The 5-core set has 432K users and 162K items, so I keep a
+# fixed random sample of users (items are never sampled directly).
+name: toys_and_games
+source: amazon2023
+category: Toys_and_Games
+max_users: 100000
+subsample_seed: 0
