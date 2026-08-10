@@ -1,0 +1,5 @@
+# Image tower for product images; the text tower stands in for items with no image.
+tag: siglip
+model: google/siglip-base-patch16-224
+batch_size: 256
+workers: 8
