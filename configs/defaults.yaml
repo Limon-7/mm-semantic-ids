@@ -1,0 +1,64 @@
+# Defaults for every experiment. Files under configs/exp/ override these, and key=value
+# arguments on the command line override both.
+name: debug
+data: all_beauty
+split: last_out          # last_out | timestamp
+seed: 0
+id_seed: 0
+
+ids:
+  text: st5              # tag of the text embedding file
+  image: siglip          # tag of the image embedding file
+  spec:
+    variant: T           # T | I | EF | LF
+    quantizer: rqvae     # rqvae | rqkmeans
+    levels: 4            # content tokens; one collision token is added on top
+    codebook_size: 256
+    lf_text_levels: 2
+    lf_order: text_first
+  rqvae:                 # TIGER paper architecture and loss
+    hidden: [512, 256, 128]
+    code_dim: 32
+    beta: 0.25
+    steps: 20000
+    batch_size: 1024
+    optimizer: adamw     # the paper's Adagrad at 0.4 diverged in my code, see docs/notes.md
+    lr: 1.0e-3
+    restart_every: 500
+  rqkmeans:
+    niter: 30
+
+model:
+  type: tiger            # tiger | sasrec | popularity
+  tiger:                 # TIGER paper settings
+    d_model: 128
+    d_ff: 1024
+    d_kv: 64
+    heads: 6
+    layers: 4
+    dropout: 0.1
+    user_tokens: 2000    # 0 switches the user token off
+  sasrec:
+    dim: 128
+    layers: 2
+    heads: 2
+    dropout: 0.2
+    item_input: id       # id | text | text_image | id_text_image
+
+train:
+  batch_size: 256
+  steps: 40000
+  lr: 1.0e-3
+  warmup: 2000
+  weight_decay: 0.01
+  eval_every: 2000
+  eval_users: 10000      # validation sample used for early stopping
+  eval_beam: 20
+  patience: 5            # evaluations without improvement before stopping
+  amp: true
+
+eval:
+  beam: 50
+  batch_size: 512
+  ks: [5, 10]
+  test: true             # false while tuning, so the test set is not touched
