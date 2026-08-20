@@ -1,0 +1,9 @@
+# Short end-to-end run on the tiny All_Beauty set: tokeniser, training, evaluation.
+data: all_beauty
+split: last_out
+ids:
+  spec: {variant: LF, quantizer: rqkmeans, levels: 4, codebook_size: 16}
+model:
+  type: tiger
+train: {steps: 600, eval_every: 200, warmup: 100, eval_users: 253}
+eval: {beam: 20}

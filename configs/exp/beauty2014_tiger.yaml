@@ -1,0 +1,8 @@
+# TIGER on the paper's dataset, paper ID shape: 3 content tokens of 256 plus a collision token.
+data: beauty2014
+split: last_out
+ids:
+  spec: {variant: T, quantizer: rqvae, levels: 3, codebook_size: 256}
+model:
+  type: tiger
+train: {steps: 60000}

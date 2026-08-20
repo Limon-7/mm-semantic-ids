@@ -1,0 +1,7 @@
+# SASRec with ID embeddings on the paper's dataset.
+data: beauty2014
+split: last_out
+model:
+  type: sasrec
+  sasrec: {item_input: id}
+train: {steps: 30000, eval_every: 1000, warmup: 500, weight_decay: 0.0}
