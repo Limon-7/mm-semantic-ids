@@ -1,0 +1,7 @@
+# Generative retrieval on semantic IDs. The matrix script sets data, split and ids.spec.variant.
+name: tiger
+model:
+  type: tiger
+ids:
+  spec: {quantizer: rqvae, levels: 4, codebook_size: 256}
+train: {steps: 40000, eval_every: 2000, patience: 5}

@@ -1,0 +1,4 @@
+# Most-popular and recently-popular lists, the floor for every other model.
+name: popularity
+model:
+  type: popularity

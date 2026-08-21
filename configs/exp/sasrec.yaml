@@ -1,0 +1,6 @@
+# SASRec baselines. The matrix script sets data, split and model.sasrec.item_input.
+# dim and dropout come from the validation grid in scripts/tune_sasrec.sh.
+name: sasrec
+model:
+  type: sasrec
+train: {steps: 30000, eval_every: 1000, warmup: 500, weight_decay: 0.0, patience: 5}
