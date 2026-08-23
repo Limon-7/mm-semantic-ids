@@ -72,9 +72,9 @@ def pad_histories(histories, max_len: int = MAX_HISTORY) -> np.ndarray:
 def load_part(data: str, split: str, part: str) -> SplitPart:
     df = pd.read_parquet(processed_dir(data, split) / f"{part}.parquet")
     return SplitPart(
-        torch.from_numpy(df["user_idx"].to_numpy(np.int64)),
+        torch.tensor(df["user_idx"].to_numpy(np.int64)),
         torch.from_numpy(pad_histories(df["history"].tolist())),
-        torch.from_numpy(df["target"].to_numpy(np.int64)),
+        torch.tensor(df["target"].to_numpy(np.int64)),
     )
 
 
