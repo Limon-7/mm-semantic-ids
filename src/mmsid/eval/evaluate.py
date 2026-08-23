@@ -26,6 +26,8 @@ def recommend_all(recommend, part: SplitPart, batch_size: int, device, amp: bool
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     ms_per_user = 1000 * (time.perf_counter() - start) / max(1, len(part))
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()  # hand the beam-search memory back, the GPU is shared
     topk = np.empty_like(np.concatenate(out))
     topk[order.numpy()] = np.concatenate(out)
     return topk, ms_per_user

@@ -59,6 +59,6 @@ train:
 
 eval:
   beam: 50
-  batch_size: 512
+  batch_size: 128        # beams multiply this by 50, keep it small on a shared GPU
   ks: [5, 10]
   test: true             # false while tuning, so the test set is not touched
