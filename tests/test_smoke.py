@@ -85,6 +85,33 @@ def test_sasrec_learns_the_synthetic_pattern(toy):
     assert metrics["test"]["recall@10"] > 0.5               # next item is always "current + 1"
 
 
+def test_interrupted_run_continues_from_its_last_validation_step(toy, monkeypatch, capsys):
+    import mmsid.train_seq as train_seq
+
+    cfg = load_config(None, COMMON + [
+        "name=toy_resume", "model.type=sasrec", "model.sasrec.dim=32", "model.sasrec.layers=1"])
+    real, calls = train_seq.target_ranks, []
+
+    def crash_on_second_validation(*args):
+        calls.append(1)
+        if len(calls) == 2:
+            raise KeyboardInterrupt
+        return real(*args)
+
+    monkeypatch.setattr(train_seq, "target_ranks", crash_on_second_validation)
+    with pytest.raises(KeyboardInterrupt):
+        run(cfg)                                            # dies at step 100 of 150
+    out = toy / "results/toy_resume/seed0"
+    assert not (out / "metrics.json").exists() and not (out / "RUNNING").exists()
+
+    monkeypatch.setattr(train_seq, "target_ranks", real)
+    metrics = run(cfg)
+    assert "resumed toy_resume from step 50" in capsys.readouterr().out
+    assert [row["step"] for row in metrics["history"]] == [50, 100, 150]
+    assert metrics["steps_run"] == 150
+    assert not (toy / "checkpoints/toy_resume/seed0/last.pt").exists()
+
+
 def test_popularity_baseline(toy):
     metrics = run(load_config(None, COMMON + ["name=toy_pop", "model.type=popularity"]))
     assert set(metrics) >= {"popularity", "popularity_recent"}

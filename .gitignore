@@ -24,3 +24,8 @@ __pycache__/
 # logs
 *.log
 results/**/events.out.tfevents.*
+
+# demo bundle (checkpoints and embeddings)
+demo/bundle/
+logs/
+results/**/RUNNING

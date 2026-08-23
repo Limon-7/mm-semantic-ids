@@ -4,10 +4,14 @@
     python -m mmsid.train_seq vg_lastout_LF seed=1 train.steps=2000
 
 Writes results/<name>/seed<k>/metrics.json. A run whose metrics.json exists is skipped.
+
+Training state is saved at every validation step, so a run that was stopped half-way continues
+from its last validation step when the same command is given again.
 """
 
 import json
 import math
+import os
 import subprocess
 import sys
 import time
@@ -59,12 +63,41 @@ def sasrec_content(data: str, cfg) -> torch.Tensor | None:
     return torch.from_numpy(np.concatenate(feats, axis=1))
 
 
+def _claimed(lock: Path) -> bool:
+    """True if another live process on this machine is already doing this run."""
+    try:
+        os.kill(int(lock.read_text()), 0)
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def save_state(path: Path, **state) -> None:
+    """Write the training state so that a kill during the write cannot corrupt it."""
+    tmp = path.with_suffix(".tmp")
+    torch.save(state, tmp)
+    os.replace(tmp, path)
+
+
 def run(cfg) -> dict | None:
+    """Train and evaluate once. Finished runs and runs another worker holds are skipped."""
     out_dir = Path("results") / cfg.name / f"seed{cfg.seed}"
+    lock = out_dir / "RUNNING"
     if (out_dir / "metrics.json").exists():
         print(f"skip {out_dir}: metrics.json exists")
         return None
+    if lock.exists() and _claimed(lock):
+        print(f"skip {out_dir}: another process is running it")
+        return None
     out_dir.mkdir(parents=True, exist_ok=True)
+    lock.write_text(str(os.getpid()))
+    try:
+        return _run(cfg, out_dir)
+    finally:
+        lock.unlink(missing_ok=True)
+
+
+def _run(cfg, out_dir: Path) -> dict:
     ckpt_dir = checkpoints_dir() / cfg.name / f"seed{cfg.seed}"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     OmegaConf.save(cfg, out_dir / "config.yaml")
@@ -127,13 +160,32 @@ def run(cfg) -> dict | None:
     train = train.to(device)
     gen = torch.Generator().manual_seed(0)  # the validation sample is the same for every run
     val_sample = valid.subset(torch.randperm(len(valid), generator=gen)[: tr.eval_users])
-    sampler = BucketSampler(train.history_len, seed=cfg.seed)
-
     best, best_step, bad, history, loss_sum = -1.0, 0, 0, [], 0.0
+    done, minutes_before, peak_before = 0, 0.0, 0.0  # done: training steps already taken
+    state_path = ckpt_dir / "last.pt"
+    if state_path.exists():
+        state = torch.load(state_path, map_location=device, weights_only=False)
+        model.load_state_dict(state["model"])
+        opt.load_state_dict(state["opt"])
+        sched.load_state_dict(state["sched"])
+        best, best_step, bad, history = state["best"], state["best_step"], state["bad"], state["history"]
+        done, minutes_before, peak_before = state["step"], state["minutes"], state["peak_gpu_gb"]
+        print(f"resumed {cfg.name} from step {done}", flush=True)
+    # a resumed run draws a fresh batch stream, so it is not bit-identical to an unbroken one
+    sampler = BucketSampler(train.history_len, seed=cfg.seed + done)
+
+    def minutes() -> float:
+        return minutes_before + (time.time() - start) / 60
+
+    def peak_gb() -> float:
+        now = torch.cuda.max_memory_allocated() / 2**30 if device == "cuda" else 0.0
+        return max(peak_before, now)
+
     if device == "cuda":
         torch.cuda.reset_peak_memory_stats()
     model.train()
-    for step in range(1, tr.steps + 1):
+    last_step = done if bad >= tr.patience else tr.steps  # nothing left if it had stopped early
+    for step in range(done + 1, last_step + 1):
         idx = sampler.sample(tr.batch_size)
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=tr.amp and device == "cuda"):
             loss = model(train.user[idx], trim(train.history[idx]), train.target[idx])
@@ -142,6 +194,7 @@ def run(cfg) -> dict | None:
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         sched.step()
+        done = step
         loss_sum += loss.item()
 
         if step % tr.eval_every == 0 or step == tr.steps:
@@ -152,7 +205,7 @@ def run(cfg) -> dict | None:
             model.train()
             n = tr.eval_every if step % tr.eval_every == 0 else step % tr.eval_every
             row = {"step": step, "loss": loss_sum / n, "val_ndcg@10": val["ndcg@10"],
-                   "val_recall@10": val["recall@10"], "minutes": (time.time() - start) / 60}
+                   "val_recall@10": val["recall@10"], "minutes": minutes()}
             loss_sum = 0.0
             history.append(row)
             for key, value in row.items():
@@ -163,23 +216,27 @@ def run(cfg) -> dict | None:
                 torch.save(model.state_dict(), ckpt_dir / "best.pt")
             else:
                 bad += 1
-                if bad >= tr.patience:
-                    break
+            save_state(state_path, model=model.state_dict(), opt=opt.state_dict(),
+                       sched=sched.state_dict(), step=step, best=best, best_step=best_step,
+                       bad=bad, history=history, minutes=minutes(), peak_gpu_gb=peak_gb())
+            if bad >= tr.patience:
+                break
     writer.close()
-    train_minutes = (time.time() - start) / 60
+    train_minutes = minutes()
 
     model.load_state_dict(torch.load(ckpt_dir / "best.pt"))
     model.eval()
     val_rep, _, _ = final_report(recommender(cfg.eval.beam), valid, tr.amp)
     run_info = {
-        "best_step": best_step, "steps_run": step, "best_val_sample_ndcg@10": best,
+        "best_step": best_step, "steps_run": done, "best_val_sample_ndcg@10": best,
         "train_minutes": train_minutes, "train_gpu_hours": train_minutes / 60,
-        "peak_gpu_gb": torch.cuda.max_memory_allocated() / 2**30 if device == "cuda" else 0.0,
+        "peak_gpu_gb": peak_gb(),
         "parameters": sum(p.numel() for p in model.parameters()), "history": history,
     }
     if not cfg.eval.test:
         metrics.update({"valid": val_rep, **run_info})
         (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
+        state_path.unlink(missing_ok=True)
         print(json.dumps({k: v for k, v in val_rep.items() if "@" in k}))
         return metrics
     test_rep, ranks, topk = final_report(recommender(cfg.eval.beam), test, tr.amp)
@@ -192,9 +249,9 @@ def run(cfg) -> dict | None:
             test_rep["invalid_beam_share_unconstrained"] = invalid_beam_share(
                 model, index, test, cfg.eval.beam, device)
 
-    metrics.update({"valid": val_rep, "test": test_rep, **run_info,
-                    "wall_clock_minutes": (time.time() - start) / 60})
+    metrics.update({"valid": val_rep, "test": test_rep, **run_info, "wall_clock_minutes": minutes()})
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
+    state_path.unlink(missing_ok=True)  # the run is finished, only best.pt is kept
     print(json.dumps({k: test_rep[k] for k in test_rep if "@" in k}))
     return metrics
 
