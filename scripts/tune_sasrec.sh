@@ -8,7 +8,7 @@ GPU=${1:?gpu index}; DATA=${2:?dataset name}
 export CUDA_VISIBLE_DEVICES=$GPU
 mkdir -p logs
 for dim in 64 128; do
-  for drop in 0.2 0.5; do
+  for drop in 0.1 0.2 0.5; do
     name="tune/${DATA}_sasrec_d${dim}_p${drop}"
     uv run python -m mmsid.train_seq sasrec name="$name" data="$DATA" split=last_out \
       model.sasrec.dim=$dim model.sasrec.dropout=$drop eval.test=false \
