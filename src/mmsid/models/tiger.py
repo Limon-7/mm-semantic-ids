@@ -71,6 +71,7 @@ class Tiger(nn.Module):
                 encoder_outputs=(memory.repeat_interleave(nb, 0),),
                 attention_mask=mask.repeat_interleave(nb, 0),
                 decoder_input_ids=decoded.view(B * nb, -1),
+                use_cache=False,  # the key/value cache holds ~1 GB per layer at beam 50
             ).logits[:, -1]
             logp = logits.float().log_softmax(-1)[:, off : off + size].view(B, nb, size)
 
