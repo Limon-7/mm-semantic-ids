@@ -195,7 +195,7 @@ def cold_item(title: str, image_url: str):
 
 # ---------------------------------------------------------------- layout
 
-with gr.Blocks(title="Multimodal semantic IDs", css=CSS) as app:
+with gr.Blocks(title="Multimodal semantic IDs") as app:
     gr.Markdown(f"# Multimodal semantic IDs: generative recommendation\n"
                 f"Catalogue: Amazon Reviews 2023, `{meta['data']}`, {len(items):,} products.")
 
@@ -245,4 +245,4 @@ with gr.Blocks(title="Multimodal semantic IDs", css=CSS) as app:
         assign.click(cold_item, [new_title, new_image], [assigned, neighbours])
 
 if __name__ == "__main__":
-    app.launch(server_name="127.0.0.1", server_port=int(os.environ.get("PORT", 7860)))
+    app.launch(server_name="127.0.0.1", server_port=int(os.environ.get("PORT", 7860)), css=CSS)
