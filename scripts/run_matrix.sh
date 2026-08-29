@@ -15,7 +15,10 @@ mkdir -p logs
 declare -A SHORT=([video_games]=vg [toys_and_games]=toys)
 declare -A SPLIT=([last_out]=lastout [timestamp]=time)
 # tuned on validation, see scripts/tune_sasrec.sh and docs/notes.md
-declare -A SASREC=([video_games]="${SASREC_VG:-}" [toys_and_games]="${SASREC_TOYS:-}")
+declare -A SASREC=(
+  [video_games]="${SASREC_VG:-model.sasrec.dim=64 model.sasrec.dropout=0.2}"
+  [toys_and_games]="${SASREC_TOYS:-model.sasrec.dim=64 model.sasrec.dropout=0.1}"
+)
 
 jobs=()
 for data in video_games toys_and_games; do

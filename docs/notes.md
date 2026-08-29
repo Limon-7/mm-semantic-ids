@@ -66,3 +66,25 @@ which level it is on; it only ignores which combinations exist.
 One seed (0) for everything, so there are no standard deviations; the paired bootstrap over test
 users is the only uncertainty estimate. No ablations over the quantiser, ID shape, text encoder or
 late-fusion order. Residual k-means is implemented and tested but all reported IDs use RQ-VAE.
+
+## Results of the SASRec grid
+
+Validation NDCG@10 on the leave-last-out split, ID variant, 30k steps. The best setting per
+category is the default in `scripts/run_matrix.sh`.
+
+| Dimension | Dropout | `video_games` | `toys_and_games` |
+|---|---|---|---|
+| 64 | 0.1 | 0.0484 | 0.0069 |
+| 64 | 0.2 | 0.0490 | 0.0062 |
+| 64 | 0.5 | 0.0382 | 0.0026 |
+| 128 | 0.1 | 0.0433 | 0.0050 |
+| 128 | 0.2 | 0.0486 | 0.0068 |
+| 128 | 0.5 | 0.0395 | 0.0043 |
+
+## Evaluation memory
+
+With 50 beams the T5 decoder's key/value cache held about 1 GB per layer, and the final evaluation
+peaked near 8 GB. On a shared card that was enough to kill runs that had finished training. The
+beam search now runs with `use_cache=False` (the decoder input is at most five tokens, so nothing is
+lost) and an evaluation batch of 64. Runs evaluated before the change report a higher peak memory
+than runs evaluated after it; the metrics are unaffected.
