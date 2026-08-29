@@ -1,0 +1,44 @@
+{
+  "n_items": 12101,
+  "n_train_items": 12068,
+  "usage": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "perplexity": [
+    237.53252675497615,
+    245.95647966887597,
+    249.93363999552892
+  ],
+  "recon_err_train": 0.07430022954940796,
+  "recon_err_unseen": 0.08900438994169235,
+  "collision_rate": 0.01528799272787373,
+  "items_in_shared_code": 0.029584331873398893,
+  "largest_group": 4,
+  "distinct_codes": 11916,
+  "prefix_purity": 0.7264420331239292,
+  "chance_purity": 0.01857652635770147,
+  "data": "beauty2014",
+  "split": "last_out",
+  "id": "T_rqvae_3x256",
+  "seed": 0,
+  "level_sizes": [
+    256,
+    256,
+    256,
+    4
+  ],
+  "seconds": 362.6,
+  "text": "st5",
+  "image": "siglip",
+  "train_log_last": [
+    {
+      "step": 20000,
+      "recon": 0.07416785508394241,
+      "quant": 0.06189204007387161,
+      "usage": 1.0,
+      "restarted": 0
+    }
+  ]
+}
