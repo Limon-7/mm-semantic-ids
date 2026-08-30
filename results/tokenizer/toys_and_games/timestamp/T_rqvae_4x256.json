@@ -1,0 +1,47 @@
+{
+  "n_items": 147458,
+  "n_train_items": 118577,
+  "usage": [
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "perplexity": [
+    233.849440298388,
+    242.45616402590488,
+    247.4968838995595,
+    251.0201605261221
+  ],
+  "recon_err_train": 0.08966024219989777,
+  "recon_err_unseen": 0.07119286060333252,
+  "collision_rate": 0.018974894546243678,
+  "items_in_shared_code": 0.03527106023410056,
+  "largest_group": 9,
+  "distinct_codes": 144660,
+  "prefix_purity": 0.6142283890872773,
+  "chance_purity": 0.020415462406876236,
+  "data": "toys_and_games",
+  "split": "timestamp",
+  "id": "T_rqvae_4x256",
+  "seed": 0,
+  "level_sizes": [
+    256,
+    256,
+    256,
+    256,
+    9
+  ],
+  "seconds": 336.7,
+  "text": "st5",
+  "image": "siglip",
+  "train_log_last": [
+    {
+      "step": 20000,
+      "recon": 0.08985695242881775,
+      "quant": 0.058580268174409866,
+      "usage": 1.0,
+      "restarted": 0
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+name: toys_lastout_T
+data: toys_and_games
+split: last_out
+seed: 0
+id_seed: 0
+ids:
+  text: st5
+  image: siglip
+  spec:
+    variant: T
+    quantizer: rqvae
+    levels: 4
+    codebook_size: 256
+    lf_text_levels: 2
+    lf_order: text_first
+  rqvae:
+    hidden:
+    - 512
+    - 256
+    - 128
+    code_dim: 32
+    beta: 0.25
+    steps: 20000
+    batch_size: 1024
+    optimizer: adamw
+    lr: 0.001
+    restart_every: 500
+  rqkmeans:
+    niter: 30
+model:
+  type: tiger
+  tiger:
+    d_model: 128
+    d_ff: 1024
+    d_kv: 64
+    heads: 6
+    layers: 4
+    dropout: 0.1
+    user_tokens: 2000
+  sasrec:
+    dim: 128
+    layers: 2
+    heads: 2
+    dropout: 0.2
+    item_input: id
+train:
+  batch_size: 256
+  steps: 40000
+  lr: 0.001
+  warmup: 2000
+  weight_decay: 0.01
+  eval_every: 2000
+  eval_users: 10000
+  eval_beam: 20
+  patience: 5
+  amp: true
+eval:
+  beam: 50
+  batch_size: 64
+  ks:
+  - 5
+  - 10
+  test: true
