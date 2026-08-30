@@ -1,0 +1,47 @@
+{
+  "n_items": 25612,
+  "n_train_items": 22976,
+  "usage": [
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "perplexity": [
+    233.05365910861138,
+    243.1801969271973,
+    250.0315652749202,
+    250.62789149225972
+  ],
+  "recon_err_train": 0.18762275576591492,
+  "recon_err_unseen": 0.15839514136314392,
+  "collision_rate": 0.012298922380134312,
+  "items_in_shared_code": 0.02291894424488521,
+  "largest_group": 7,
+  "distinct_codes": 25297,
+  "prefix_purity": 0.6591333279233953,
+  "chance_purity": 0.21890947144647535,
+  "data": "video_games",
+  "split": "timestamp",
+  "id": "EF_rqvae_4x256",
+  "seed": 0,
+  "level_sizes": [
+    256,
+    256,
+    256,
+    256,
+    7
+  ],
+  "seconds": 340.3,
+  "text": "st5",
+  "image": "siglip",
+  "train_log_last": [
+    {
+      "step": 20000,
+      "recon": 0.18695616722106934,
+      "quant": 0.055164884775877,
+      "usage": 1.0,
+      "restarted": 0
+    }
+  ]
+}
