@@ -43,7 +43,7 @@ is larger still and I did not use it.
 | Users | 94,762 | 100,000 |
 | Items | 25,612 | 147,458 |
 | Interactions | 814,586 | 891,152 |
-| Items with a downloaded image | 100.0% | 100.0% |
+| Items with a readable image | 99.98% | 99.99% |
 | Distinct leaf categories | 136 | 784 |
 | Median interactions per user | 6 | 7 |
 | Median training interactions per item | 9 | 2 |
@@ -53,9 +53,10 @@ is larger still and I did not use it.
 
 What this means for the experiments:
 
-- **Every item has an image.** The stand-in for missing images (SigLIP text tower on the title) is
-  implemented and tested but is never used on these two categories, so I cannot report a
-  with-image against without-image comparison.
+- **Almost every item has an image.** Only 6 `video_games` items and 18 `toys_and_games` items have
+  no readable image and fall back to the stand-in (SigLIP text tower on the title). That is 10 and
+  50 test targets in the leave-last-out split, too few for a with-image against without-image
+  comparison.
 - **The time split is mostly a cold-start problem.** Around 60 to 67% of test targets were never
   seen in training. A model with ID embeddings cannot rank those items at all, so the time split is
   where content-based codes should matter most.
